@@ -239,6 +239,11 @@ a { color: inherit; text-decoration: none; }
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
+/* ============ remote demo (autoplay) ============ */
+.remote { text-align: center; }
+.remote .lede { margin-left: auto; margin-right: auto; }
+.remote-demo { margin-top: clamp(36px, 5vw, 60px); }
+
 /* ============ sections ============ */
 .section { max-width: var(--maxw); margin: 0 auto; padding: clamp(80px, 12vh, 140px) clamp(20px, 5vw, 40px); }
 .kicker {
