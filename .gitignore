@@ -13,3 +13,10 @@ dist/
 
 # Generated icon intermediates
 Resources/AppIcon.iconset/
+
+# .NET (Windows app)
+[Bb]in/
+[Oo]bj/
+*.user
+windows/**/bin/
+windows/**/obj/
