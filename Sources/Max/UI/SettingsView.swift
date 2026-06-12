@@ -523,11 +523,15 @@ private struct ChannelsTab: View {
                 allowlistEditor(
                     title: "Allowed Telegram user IDs",
                     list: $state.config.telegramAllowlist,
-                    draft: $newTelegramId
+                    draft: $newTelegramId,
+                    placeholder: "Your numeric ID, e.g. 6054692962"
                 )
-                Text("In Telegram, message @BotFather → /newbot → copy the token. Then DM your new bot anything. To find your user ID, message @userinfobot — it replies with your numeric ID. Add that ID above.")
+                Text("In Telegram: message @BotFather → /newbot → copy the token and Save it above. To get YOUR user ID, message @userinfobot — it replies with a number like 6054692962; add that number below.")
                     .font(.system(size: 10.5))
                     .foregroundStyle(.secondary)
+                Text("⚠️ Allowlist your own numeric ID — NOT the bot's name (e.g. not “Max752Bot”). That's who's allowed to talk to Max.")
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(.orange)
             }
 
             Section("Discord") {
@@ -551,7 +555,8 @@ private struct ChannelsTab: View {
                 allowlistEditor(
                     title: "Allowed Discord user IDs",
                     list: $state.config.discordAllowlist,
-                    draft: $newDiscordId
+                    draft: $newDiscordId,
+                    placeholder: "Your numeric user ID, e.g. 372100148015…"
                 )
                 Text("In the Discord Developer Portal: create an app → Bot → enable the MESSAGE CONTENT intent → copy the token. Invite the bot to a server or DM it. Get your user ID via Discord Settings → Advanced → Developer Mode → right-click yourself → Copy User ID.")
                     .font(.system(size: 10.5))
@@ -589,7 +594,8 @@ private struct ChannelsTab: View {
                 allowlistEditor(
                     title: "Allowed Slack user IDs",
                     list: $state.config.slackAllowlist,
-                    draft: $newSlackId
+                    draft: $newSlackId,
+                    placeholder: "Your member ID, e.g. U01ABC2DEF"
                 )
                 Text("Create a Slack app → enable Socket Mode (generates the app-level token with connections:write) → add bot scopes chat:write + message.im, subscribe to message.im events → install to workspace for the bot token. Your user ID is in your Slack profile → More → Copy member ID.")
                     .font(.system(size: 10.5))
@@ -601,7 +607,7 @@ private struct ChannelsTab: View {
     }
 
     @ViewBuilder
-    private func allowlistEditor(title: String, list: Binding<[String]>, draft: Binding<String>) -> some View {
+    private func allowlistEditor(title: String, list: Binding<[String]>, draft: Binding<String>, placeholder: String? = nil) -> some View {
         ForEach(list.wrappedValue, id: \.self) { id in
             HStack {
                 Text(id).font(.system(size: 12, design: .monospaced))
@@ -614,7 +620,7 @@ private struct ChannelsTab: View {
             }
         }
         HStack {
-            TextField(title, text: draft)
+            TextField(placeholder ?? title, text: draft)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit { addId(list: list, draft: draft) }
             Button("Add") { addId(list: list, draft: draft) }
