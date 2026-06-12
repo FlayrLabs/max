@@ -64,8 +64,7 @@ struct PillView: View {
                 if busy {
                     WorkingOutline(cornerRadius: 30)
                 } else if dropTarget {
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(Color.accentColor.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
+                    dropOverlay
                 }
             }
             .onDrop(of: [.fileURL, .image], isTargeted: $dropTarget) { providers in
@@ -81,11 +80,23 @@ struct PillView: View {
         .onAppear { focused = true }
     }
 
+    /// Busy pulse driven by a TimelineView (not a `.repeatForever` animation modifier),
+    /// so a layout change — like an attachment appearing — can't make the duck oscillate
+    /// or "jump" out of the pill.
+    @ViewBuilder private var duck: some View {
+        if busy {
+            TimelineView(.animation) { context in
+                let t = context.date.timeIntervalSinceReferenceDate
+                DuckIcon(size: 24).opacity(0.55 + 0.45 * abs(sin(t * 2.4)))
+            }
+        } else {
+            DuckIcon(size: 24)
+        }
+    }
+
     private var inputRow: some View {
         HStack(spacing: 12) {
-            DuckIcon(size: 24)
-                .opacity(busy ? 0.6 : 1)
-                .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: busy)
+            duck
 
             TextField("Ask Max to do anything…", text: $state.draft, axis: .vertical)
                 .textFieldStyle(.plain)
@@ -93,6 +104,14 @@ struct PillView: View {
                 .lineLimit(1...3)
                 .focused($focused)
                 .onSubmit { state.submitDraft() }
+
+            Button(action: { state.pickAttachment() }) {
+                Image(systemName: "paperclip")
+                    .font(.system(size: 12, weight: .bold))
+                    .padding(6)
+            }
+            .buttonStyle(.glass)
+            .help("Attach a file or image — or drop one onto the pill")
 
             if state.isWorking {
                 Button(action: { state.stop() }) {
@@ -123,6 +142,24 @@ struct PillView: View {
             .buttonStyle(.glass)
             .help(state.chatOpen ? "Hide chat" : "Show chat")
         }
+    }
+
+    /// Obvious "you can drop here" affordance shown while a drag hovers the pill.
+    private var dropOverlay: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(Color.accentColor.opacity(0.14))
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .strokeBorder(Color.accentColor.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
+            HStack(spacing: 8) {
+                Image(systemName: "photo.badge.plus")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Drop image or file to attach")
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundStyle(Color.accentColor)
+        }
+        .allowsHitTesting(false)
     }
 
     private var attachmentStrip: some View {
