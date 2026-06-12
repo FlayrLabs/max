@@ -63,15 +63,9 @@
   <!-- DEMO -->
   <section class="demo-wrap">
     <div class="demo reveal">
-      <video class="demo-video" id="demo" playsinline muted loop poster="assets/demo-poster.jpg" preload="none">
+      <video class="demo-video" id="demo" playsinline muted loop poster="assets/demo-poster.jpg" preload="metadata">
         <source src="assets/demo.mp4" type="video/mp4" />
       </video>
-      <div class="demo-placeholder" id="demoPlaceholder">
-        <button class="play" id="playBtn" aria-label="Play demo">
-          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
-        </button>
-        <span>Demo</span>
-      </div>
       <div class="demo-edge" aria-hidden="true"></div>
     </div>
   </section>
@@ -133,14 +127,17 @@
 
   <!-- REMOTE DEMO -->
   <section class="section remote" id="remote">
-    <p class="kicker reveal">From anywhere</p>
-    <h2 class="reveal">Control your Mac<br />from anywhere.</h2>
-    <p class="lede center reveal">Message Max from your phone and it operates your Mac in real time — open apps, run jobs, check on things — then texts you back. Wherever you are.</p>
-    <div class="demo remote-demo reveal" data-d="1">
-      <video class="demo-video" id="remoteVideo" muted loop playsinline preload="metadata" poster="assets/remote-poster.jpg">
-        <source src="assets/remote-demo.mp4" type="video/mp4" />
-      </video>
-      <div class="demo-edge" aria-hidden="true"></div>
+    <div class="remote-inner">
+      <div class="remote-copy reveal">
+        <p class="kicker">From anywhere</p>
+        <h2>Control your Mac<br />from anywhere.</h2>
+        <p class="muted">Message Max from your phone and it runs the task on your Mac in real time — open apps, kick off jobs, check on things — then texts you back. Wherever you are.</p>
+      </div>
+      <div class="phone reveal" data-d="1">
+        <video class="phone-video" id="remoteVideo" muted loop playsinline preload="metadata" poster="assets/remote-poster.jpg">
+          <source src="assets/remote-demo.mp4" type="video/mp4" />
+        </video>
+      </div>
     </div>
   </section>
 

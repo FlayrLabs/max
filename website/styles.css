@@ -239,10 +239,31 @@ a { color: inherit; text-decoration: none; }
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
-/* ============ remote demo (autoplay) ============ */
-.remote { text-align: center; }
-.remote .lede { margin-left: auto; margin-right: auto; }
-.remote-demo { margin-top: clamp(36px, 5vw, 60px); }
+/* ============ remote demo (autoplay, phone on right) ============ */
+.remote-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: clamp(32px, 6vw, 88px);
+}
+.remote-copy { text-align: left; }
+.remote-copy .muted { max-width: 46ch; margin-top: 18px; }
+.phone {
+  position: relative;
+  width: clamp(232px, 26vw, 312px);
+  aspect-ratio: 498 / 1034;
+  border-radius: 38px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #000;
+  box-shadow: 0 50px 120px -40px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.05) inset;
+}
+.phone-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 780px) {
+  .remote-inner { grid-template-columns: 1fr; justify-items: center; }
+  .remote-copy { text-align: center; }
+  .remote-copy .muted { margin-left: auto; margin-right: auto; }
+}
 
 /* ============ sections ============ */
 .section { max-width: var(--maxw); margin: 0 auto; padding: clamp(80px, 12vh, 140px) clamp(20px, 5vw, 40px); }
