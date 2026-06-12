@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy — Max</title>
+  <meta name="description" content="How Max handles your data." />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,500&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="aurora" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span></div>
+
+  <main class="legal">
+    <a class="back" href="index.html">← Max</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: June 2026</p>
+
+    <p>Max is a native macOS app that runs entirely on your own Mac. There is no Max
+      account, no Max server, and no analytics or telemetry. We don't collect, store, or
+      transmit your data — because there is nothing on our side to send it to.</p>
+
+    <h2>What stays on your Mac</h2>
+    <ul>
+      <li>Your settings, your <code>soul.md</code> instructions, conversations, loop history, and logs are stored in <code>~/.askmax/</code> on your machine.</li>
+      <li>API keys and channel tokens are stored encrypted in the macOS Keychain — never in plaintext, never uploaded.</li>
+      <li>An action log of what Max did is kept locally so you can audit it.</li>
+    </ul>
+
+    <h2>What leaves your Mac</h2>
+    <p>Only the requests you make to the AI provider you choose. When Max answers, it sends
+      your messages — and, when relevant, file contents, screen captures, or command output —
+      to the model provider whose API key you supplied (for example Anthropic or OpenAI),
+      governed by that provider's privacy policy. If you use a local model via Ollama, nothing
+      leaves your Mac at all.</p>
+    <p>If you connect a chat channel (iMessage, Telegram, Discord, Slack), messages travel
+      through that service the same way any of your messages on it would, and only people on
+      your allowlist can reach Max.</p>
+
+    <h2>Your control</h2>
+    <p>You can delete everything Max stores by removing the <code>~/.askmax/</code> folder and
+      deleting the app. Keychain entries can be removed in Keychain Access.</p>
+
+    <h2>Contact</h2>
+    <p>Questions? Open an issue on <a href="https://github.com/flayrlabs/askmax">GitHub</a>.</p>
+  </main>
+</body>
+</html>
