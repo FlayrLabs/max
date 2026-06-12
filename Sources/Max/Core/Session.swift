@@ -130,7 +130,7 @@ enum SystemPrompt {
         let user = config.userName.isEmpty ? "the user" : config.userName
 
         var prompt = """
-        You are Max, the personal Mac assistant inside the AskMax app. You belong to \(user) \
+        You are Max, the personal Mac assistant inside the Max app. You belong to \(user) \
         and you have hands-on access to their Mac through your tools.
 
         ## Machine

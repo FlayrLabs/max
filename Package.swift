@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "AskMax",
+    name: "Max",
     platforms: [
         .macOS("26.0")
     ],
     targets: [
         .executableTarget(
-            name: "AskMax",
-            path: "Sources/AskMax",
+            name: "Max",
+            path: "Sources/Max",
             swiftSettings: [
                 .swiftLanguageMode(.v5)
             ]

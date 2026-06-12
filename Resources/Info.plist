@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.flayrlabs.askmax</string>
+    <string>com.flayrlabs.max</string>
     <key>CFBundleName</key>
-    <string>AskMax</string>
+    <string>Max</string>
     <key>CFBundleDisplayName</key>
-    <string>AskMax</string>
+    <string>Max</string>
     <key>CFBundleExecutable</key>
-    <string>AskMax</string>
+    <string>Max</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>

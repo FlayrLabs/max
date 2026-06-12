@@ -104,9 +104,8 @@ struct ChatView: View {
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .defaultScrollAnchor(.bottom)
-            // Explicit jumps for discrete events the anchor doesn't cover:
-            // each new message, streaming start/stop, and reopening the chat.
+            // Top-aligned when content is short; the explicit scroll-to-bottom
+            // calls below keep it pinned to the newest message once it overflows.
             .onChange(of: state.messages.count) { scrollToBottom(proxy) }
             .onChange(of: state.streaming) { scrollToBottom(proxy) }
             .onChange(of: state.isWorking) { scrollToBottom(proxy) }

@@ -141,7 +141,30 @@ struct AppleScriptTool: MaxTool {
         if let blocked = CommandGuard.block(script) { return blocked }
         // osascript via shell keeps everything on one execution path.
         let escaped = script.replacingOccurrences(of: "'", with: "'\\''")
-        return await ExecTool.runShell("osascript -e '\(escaped)'", timeout: 120)
+        let command = "osascript -e '\(escaped)'"
+
+        var outcome = await ExecTool.runShell(command, timeout: 120)
+
+        // First-time control of an app triggers a macOS Automation prompt and
+        // the event fails with -1743 ("Not authorized to send Apple events")
+        // until the user clicks Allow. Wait for the prompt to be answered, then
+        // retry once so the first call succeeds instead of erroring.
+        if outcome.isError, Self.isAuthorizationError(outcome.content) {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            outcome = await ExecTool.runShell(command, timeout: 120)
+            if outcome.isError, Self.isAuthorizationError(outcome.content) {
+                return .fail(
+                    "macOS hasn't granted Max permission to control this app yet. " +
+                    "Approve the \"Max wants to control…\" prompt (or enable it in " +
+                    "System Settings → Privacy & Security → Automation), then try again."
+                )
+            }
+        }
+        return outcome
+    }
+
+    private static func isAuthorizationError(_ text: String) -> Bool {
+        text.contains("-1743") || text.contains("Not authorized to send Apple events")
     }
 }
 

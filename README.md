@@ -1,4 +1,4 @@
-# AskMax — "Max", your Mac's AI assistant
+# Max — "Max", your Mac's AI assistant
 
 Max is a native macOS (Liquid Glass) personal assistant that actually operates
 your Mac. Summon a floating pill with **⌥Space**, type, and Max can run shell
@@ -18,11 +18,11 @@ via Ollama.
 Because this is signed with a local/self-signed identity (not yet notarized),
 macOS Gatekeeper will warn the first time:
 
-1. Move `AskMax.app` to `/Applications`.
+1. Move `Max.app` to `/Applications`.
 2. Right-click it → **Open** → **Open** (only needed once), **or** clear the
    quarantine flag:
    ```sh
-   xattr -dr com.apple.quarantine /Applications/AskMax.app
+   xattr -dr com.apple.quarantine /Applications/Max.app
    ```
 3. Launch it. There's no Dock window — look for the **sparkles bubble** in the
    menu bar, and the pill at the bottom of the screen (⌥Space toggles it).
@@ -40,17 +40,17 @@ macOS Gatekeeper will warn the first time:
 3. Optional: **Safety** (approval mode, denylist, spend limit), **Channels**
    (Telegram/Discord/Slack), **Devices** (other Macs), **Loops** (schedules).
 
-Data lives in `~/.askmax/` (config, soul.md, conversations, logs). Secrets are in
+Data lives in `~/.max/` (config, soul.md, conversations, logs). Secrets are in
 the Keychain, never in plaintext. Everything Max did is logged to
-`~/.askmax/actions.log`.
+`~/.max/actions.log`.
 
 ## Build from source
 
 Requires the Xcode 26+ command line tools (Swift 6, macOS 26 SDK).
 
 ```sh
-./scripts/build-app.sh        # → dist/AskMax.app (stable self-signed)
-open dist/AskMax.app
+./scripts/build-app.sh        # → dist/Max.app (stable self-signed)
+open dist/Max.app
 ```
 
 The first build creates a stable self-signed code-signing certificate
@@ -68,7 +68,7 @@ this one cert type (one time) and an app-specific password:
    **+** → **Developer ID Application**. (Or generate a CSR and download it from
    developer.apple.com → Certificates.) It installs into your login Keychain.
 2. **App-specific password**: appleid.apple.com → Sign-In & Security →
-   App-Specific Passwords → create one for "AskMax notarization".
+   App-Specific Passwords → create one for "Max notarization".
 3. **Build, sign, notarize, staple in one command** (Team ID is baked in):
    ```sh
    APPLE_ID="you@icloud.com" APP_PW="abcd-efgh-ijkl-mnop" ./scripts/build-app.sh
@@ -77,7 +77,7 @@ this one cert type (one time) and an app-specific password:
    submits to Apple, waits, and staples the ticket. Override the identity with
    `DEVELOPER_ID="Developer ID Application: … (NRNU83UJ68)"` if needed.
 
-After that, `dist/AskMax.app` opens on any Mac with no warning and no quarantine
+After that, `dist/Max.app` opens on any Mac with no warning and no quarantine
 removal needed.
 
 ## Safety model (read this)
@@ -92,4 +92,4 @@ removal needed.
 - **Pause** — a kill switch (menu bar or Settings → Safety) that blocks all tool
   use instantly.
 
-These reduce risk; they don't eliminate it. Audit `~/.askmax/actions.log`.
+These reduce risk; they don't eliminate it. Audit `~/.max/actions.log`.
