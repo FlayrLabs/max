@@ -111,7 +111,7 @@ final class DiscordChannel {
         send(["op": 2, "d": [
             "token": token,
             "intents": intents,
-            "properties": ["os": "macOS", "browser": "askmax", "device": "askmax"],
+            "properties": ["os": "macOS", "browser": "max", "device": "max"],
         ]])
     }
 

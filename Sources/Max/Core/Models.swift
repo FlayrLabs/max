@@ -15,11 +15,12 @@ struct ImagePayload: Codable, Equatable {
 
 enum ContentBlock: Codable, Equatable {
     case text(String)
+    case image(ImagePayload)   // user-attached image (drag & drop)
     case toolUse(id: String, name: String, inputJSON: String)
     case toolResult(toolUseId: String, content: String, isError: Bool, images: [ImagePayload])
 
     private enum CodingKeys: String, CodingKey {
-        case type, text, id, name, inputJSON, toolUseId, content, isError, images
+        case type, text, id, name, inputJSON, toolUseId, content, isError, images, image
     }
 
     init(from decoder: Decoder) throws {
@@ -27,6 +28,8 @@ enum ContentBlock: Codable, Equatable {
         switch try c.decode(String.self, forKey: .type) {
         case "text":
             self = .text(try c.decode(String.self, forKey: .text))
+        case "image":
+            self = .image(try c.decode(ImagePayload.self, forKey: .image))
         case "tool_use":
             self = .toolUse(
                 id: try c.decode(String.self, forKey: .id),
@@ -51,6 +54,9 @@ enum ContentBlock: Codable, Equatable {
         case .text(let t):
             try c.encode("text", forKey: .type)
             try c.encode(t, forKey: .text)
+        case .image(let payload):
+            try c.encode("image", forKey: .type)
+            try c.encode(payload, forKey: .image)
         case .toolUse(let id, let name, let inputJSON):
             try c.encode("tool_use", forKey: .type)
             try c.encode(id, forKey: .id)

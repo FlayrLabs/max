@@ -118,7 +118,7 @@ private struct ProfileTab: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("soul.md").font(.system(size: 12, weight: .semibold))
-                    Text("— who Max is and how he should behave. Saved to ~/.askmax/soul.md")
+                    Text("— who Max is and how he should behave. Saved to ~/.max/soul.md")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -448,7 +448,7 @@ private struct SafetyTab: View {
                     .font(.system(size: 10.5)).foregroundStyle(.secondary)
             }
 
-            Text("Max acts on AI instructions and can be wrong or manipulated by content it reads. These controls reduce risk but don't eliminate it. Audit everything it did in ~/.askmax/actions.log.")
+            Text("Max acts on AI instructions and can be wrong or manipulated by content it reads. These controls reduce risk but don't eliminate it. Audit everything it did in ~/.max/actions.log.")
                 .font(.system(size: 11)).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)

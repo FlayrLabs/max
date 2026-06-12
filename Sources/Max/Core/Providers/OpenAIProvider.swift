@@ -162,7 +162,7 @@ struct OpenAIProvider: LLMProvider {
                         "type": "function",
                         "function": ["name": name, "arguments": inputJSON],
                     ])
-                case .toolResult: break
+                case .toolResult, .image: break
                 }
             }
             var msg: [String: Any] = ["role": "assistant"]
@@ -174,10 +174,16 @@ struct OpenAIProvider: LLMProvider {
             // A "user" turn is either real user text or a batch of tool results.
             var results: [[String: Any]] = []
             var imageParts: [[String: Any]] = []
+            var attachedImageParts: [[String: Any]] = []
             var content = ""
             for block in turn.blocks {
                 switch block {
                 case .text(let t): content += t
+                case .image(let img):
+                    attachedImageParts.append([
+                        "type": "image_url",
+                        "image_url": ["url": "data:\(img.mediaType);base64,\(img.base64)"],
+                    ])
                 case .toolResult(let toolUseId, let result, _, let images):
                     results.append(["role": "tool", "tool_call_id": toolUseId, "content": result])
                     // OpenAI tool messages are text-only; images ride in a
@@ -198,6 +204,13 @@ struct OpenAIProvider: LLMProvider {
                     results.append(["role": "user", "content": parts])
                 }
                 return results
+            }
+            // Real user turn: text + any drag-and-dropped images.
+            if !attachedImageParts.isEmpty {
+                var parts: [[String: Any]] = []
+                if !content.isEmpty { parts.append(["type": "text", "text": content]) }
+                parts.append(contentsOf: attachedImageParts)
+                return [["role": "user", "content": parts]]
             }
             return [["role": "user", "content": content]]
         }

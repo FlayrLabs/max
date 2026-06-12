@@ -80,7 +80,8 @@ enum AgentLoop {
         userText: String,
         config: MaxConfig,
         isLoopRun: Bool = false,
-        isRemoteOrigin: Bool = false
+        isRemoteOrigin: Bool = false,
+        images: [ImagePayload] = []
     ) -> AsyncStream<AgentEvent> {
         AsyncStream { continuation in
             let task = Task {
@@ -108,7 +109,7 @@ enum AgentLoop {
                     return
                 }
 
-                session.append(ChatTurn(role: .user, blocks: [.text(userText)]))
+                session.append(ChatTurn(role: .user, blocks: [.text(userText)] + images.map { .image($0) }))
 
                 var iterations = 0
                 var finalText = ""

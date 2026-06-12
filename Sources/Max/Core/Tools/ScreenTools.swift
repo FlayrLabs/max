@@ -47,7 +47,7 @@ struct SeeScreenTool: MaxTool {
 
         let target = input["target"] as? String ?? "window"
         let tmp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("askmax-shot-\(UUID().uuidString.prefix(8)).png")
+            .appendingPathComponent("max-shot-\(UUID().uuidString.prefix(8)).png")
         defer { try? FileManager.default.removeItem(at: tmp) }
 
         var frontAppName = "screen"
@@ -99,6 +99,24 @@ struct SeeScreenTool: MaxTool {
             return nil
         }
         return ImagePayload(base64: data.base64EncodedString(), mediaType: "image/jpeg")
+    }
+
+    /// Same downscale+JPEG encode, from raw image data (e.g. a dropped image).
+    static func jpegPayload(fromData data: Data, maxPixels: CGFloat, quality: CGFloat) -> ImagePayload? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+            return nil
+        }
+        let rep = NSBitmapImageRep(cgImage: cgImage)
+        guard let jpeg = rep.representation(using: .jpeg, properties: [.compressionFactor: quality]) else {
+            return nil
+        }
+        return ImagePayload(base64: jpeg.base64EncodedString(), mediaType: "image/jpeg")
     }
 }
 
