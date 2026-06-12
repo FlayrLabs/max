@@ -1,4 +1,4 @@
-# Static marketing site for Ask Max — served by nginx.
+# Static marketing site for Max — served by nginx.
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY . /usr/share/nginx/html

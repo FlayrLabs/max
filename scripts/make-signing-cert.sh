@@ -38,9 +38,9 @@ EOF
     -keyout "$WORK/key.pem" -out "$WORK/cert.pem" -config "$WORK/cfg" 2>/dev/null
 
 "$SSL" pkcs12 -export -inkey "$WORK/key.pem" -in "$WORK/cert.pem" \
-    -out "$WORK/id.p12" -passout pass:askmax -name "$CN" 2>/dev/null
+    -out "$WORK/id.p12" -passout pass:max -name "$CN" 2>/dev/null
 
 # -A allows any app (incl. codesign) to use the key without a per-use prompt.
-security import "$WORK/id.p12" -k "$KEYCHAIN" -P askmax -A -T /usr/bin/codesign
+security import "$WORK/id.p12" -k "$KEYCHAIN" -P max -A -T /usr/bin/codesign
 
 echo "✓ created signing identity '$CN'"
