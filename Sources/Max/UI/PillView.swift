@@ -105,14 +105,6 @@ struct PillView: View {
                 .focused($focused)
                 .onSubmit { state.submitDraft() }
 
-            Button(action: { state.pickAttachment() }) {
-                Image(systemName: "paperclip")
-                    .font(.system(size: 12, weight: .bold))
-                    .padding(6)
-            }
-            .buttonStyle(.glass)
-            .help("Attach a file or image — or drop one onto the pill")
-
             if state.isWorking {
                 Button(action: { state.stop() }) {
                     Label("Stop", systemImage: "square.fill")
