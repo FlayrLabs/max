@@ -247,6 +247,21 @@ final class AppState: ObservableObject {
         pendingAttachments.removeAll { $0.id == id }
     }
 
+    /// Open a file picker — the discoverable counterpart to drag-and-drop (via the
+    /// paperclip button), for users who don't know they can drop onto the pill.
+    func pickAttachment() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.message = "Attach images or files for Max"
+        panel.prompt = "Attach"
+        NSApp.activate(ignoringOtherApps: true)
+        if panel.runModal() == .OK {
+            for url in panel.urls { addAttachment(url: url) }
+        }
+    }
+
     /// A message arriving from a channel (iMessage). Joins the current
     /// conversation so desk and phone share one session; `onFinal` receives
     /// Max's final text for the reply.
