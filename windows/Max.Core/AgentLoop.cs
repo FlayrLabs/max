@@ -24,7 +24,7 @@ public static class AgentLoop
     };
 
     public static List<IMaxTool> BaseTools(MaxConfig config) =>
-        new() { new ExecTool(config), new ReadFileTool(), new WriteFileTool() };
+        new() { new ExecTool(config), new ReadFileTool(), new WriteFileTool(), new LoopTool() };
 
     /// <param name="tools">The full tool set (base tools + any platform tools from the head).</param>
     /// <param name="approval">Ask-mode gate. Returns true to allow. Null = auto-approve.</param>

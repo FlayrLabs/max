@@ -22,7 +22,7 @@ public sealed partial class PillWindow : Window
     private readonly MaxConfig _config = MaxConfig.Load();
     private readonly ISecretStore _secrets = new CredentialSecretStore();
     private readonly ChatSession _session;
-    private readonly List<IMaxTool> _tools;
+    private readonly IReadOnlyList<IMaxTool> _tools;
     private CancellationTokenSource? _turnCts;
     private bool _busy;
 
@@ -43,10 +43,32 @@ public sealed partial class PillWindow : Window
         CenterOnScreen();
 
         _session = new ChatSession(Conversations.MostRecentId() ?? Conversations.NewId());
-        _tools = AgentLoop.BaseTools(_config);
-        if (_config.AllowScreenVision) _tools.Add(new ScreenCaptureTool());
+        _tools = WindowsToolset.ForInteractive(_config);
 
         AddBubble("Max", "Hey — I'm Max. Ask me to do anything on this PC.", isUser: false);
+        Root.Loaded += async (_, _) => await ShowConsentIfNeededAsync();
+    }
+
+    private async Task ShowConsentIfNeededAsync()
+    {
+        if (_config.AcknowledgedRisk) return;
+        var dialog = new ContentDialog
+        {
+            Title = "Use at your own risk",
+            Content = "Max can run commands, control apps, and read your screen on this PC using your own AI key. " +
+                      "It's powerful — review what it does, keep the command denylist on, and set a spend limit. " +
+                      "You accept full responsibility for actions it takes.",
+            PrimaryButtonText = "I understand",
+            CloseButtonText = "Quit",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = Root.XamlRoot,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            _config.AcknowledgedRisk = true;
+            _config.Save();
+        }
+        else { Application.Current.Exit(); }
     }
 
     public void Toggle()

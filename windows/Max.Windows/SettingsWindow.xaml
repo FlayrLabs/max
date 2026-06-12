@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Max.Windows.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="14" MaxWidth="640" HorizontalAlignment="Left">
+
+            <TextBlock Text="Max settings" FontSize="24" FontWeight="SemiBold" />
+
+            <!-- PROFILE -->
+            <Expander Header="Profile" IsExpanded="True" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="10" Padding="4">
+                    <TextBox x:Name="NameBox" Header="Your name" />
+                    <TextBox x:Name="SoulBox" Header="Instructions (soul.md)" AcceptsReturn="True" TextWrapping="Wrap" Height="120" />
+                    <Button Content="Save profile" Click="SaveProfile_Click" />
+                </StackPanel>
+            </Expander>
+
+            <!-- MODEL -->
+            <Expander Header="Model &amp; key" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="10" Padding="4">
+                    <ComboBox x:Name="ProviderBox" Header="Provider" Width="240">
+                        <ComboBoxItem Content="Anthropic" />
+                        <ComboBoxItem Content="OpenAI" />
+                        <ComboBoxItem Content="Ollama (local)" />
+                    </ComboBox>
+                    <TextBox x:Name="ModelBox" Header="Model" />
+                    <TextBox x:Name="OllamaBox" Header="Ollama base URL" />
+                    <PasswordBox x:Name="KeyBox" Header="API key (stored in Windows Credential Manager)" />
+                    <Button Content="Save model + key" Click="SaveModel_Click" />
+                </StackPanel>
+            </Expander>
+
+            <!-- SAFETY -->
+            <Expander Header="Safety" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="10" Padding="4">
+                    <ToggleSwitch x:Name="ApprovalSwitch" Header="Ask before running commands" OnContent="Ask" OffContent="Auto" />
+                    <ToggleSwitch x:Name="DenylistSwitch" Header="Use built-in dangerous-command denylist" />
+                    <TextBox x:Name="DenylistBox" Header="Extra denylist patterns (one per line)" AcceptsReturn="True" Height="80" TextWrapping="Wrap" />
+                    <NumberBox x:Name="SpendBox" Header="Daily spend limit (USD)" SpinButtonPlacementMode="Inline" Minimum="0" SmallChange="1" Width="240" />
+                    <ToggleSwitch x:Name="KeepAwakeSwitch" Header="Keep this PC awake" />
+                    <ToggleSwitch x:Name="PauseSwitch" Header="Pause Max (kill switch)" />
+                    <Button Content="Save safety" Click="SaveSafety_Click" />
+                </StackPanel>
+            </Expander>
+
+            <!-- CHANNELS -->
+            <Expander Header="Channels" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="14" Padding="4">
+                    <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Give Max its own identity for two-sided chat. Allowlist your own NUMERIC user ID — not the bot's name." />
+
+                    <StackPanel Spacing="6">
+                        <ToggleSwitch x:Name="TelegramSwitch" Header="Telegram" />
+                        <PasswordBox x:Name="TelegramToken" PlaceholderText="Bot token from @BotFather" />
+                        <TextBox x:Name="TelegramAllow" PlaceholderText="Your numeric ID, e.g. 6054692962" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <ToggleSwitch x:Name="DiscordSwitch" Header="Discord" />
+                        <PasswordBox x:Name="DiscordToken" PlaceholderText="Bot token (MESSAGE CONTENT intent on)" />
+                        <TextBox x:Name="DiscordAllow" PlaceholderText="Your numeric user ID" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <ToggleSwitch x:Name="SlackSwitch" Header="Slack" />
+                        <PasswordBox x:Name="SlackApp" PlaceholderText="App-level token (xapp-…)" />
+                        <PasswordBox x:Name="SlackBot" PlaceholderText="Bot token (xoxb-…)" />
+                        <TextBox x:Name="SlackAllow" PlaceholderText="Your member ID, e.g. U01ABC2DEF" />
+                    </StackPanel>
+
+                    <Button Content="Save channels" Click="SaveChannels_Click" />
+                </StackPanel>
+            </Expander>
+
+            <!-- LOOPS -->
+            <Expander Header="Loops" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="10" Padding="4">
+                    <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Scheduled autonomous runs. Create them by asking Max in chat; remove them here." />
+                    <ListView x:Name="LoopsList" SelectionMode="None" MaxHeight="220" />
+                    <Button Content="Refresh" Click="RefreshLoops_Click" />
+                </StackPanel>
+            </Expander>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>
