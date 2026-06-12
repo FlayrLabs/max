@@ -2,61 +2,131 @@ import SwiftUI
 import AppKit
 import Carbon
 
-/// Records a global summon shortcut. Click to listen for the next modifier+key
-/// combination, which is saved and re-registered immediately.
+/// Records a global summon shortcut. Click the field, then press a combination.
 ///
-/// Capture uses a real first-responder NSView (keyDown / performKeyEquivalent)
-/// rather than an NSEvent local monitor — inside a SwiftUI settings window the
-/// monitor approach often never receives the keystroke, so nothing registered.
+/// Capture is a real AppKit control (a clicked NSButton naturally becomes first
+/// responder, so its keyDown/performKeyEquivalent reliably receive the keystroke) —
+/// SwiftUI NSEvent monitors and hidden background views did not. Every keypress is
+/// logged to ~/.max/hotkey-debug.log for diagnosis.
 struct HotKeyRecorder: View {
     @EnvironmentObject var state: AppState
-    @State private var recording = false
 
     var body: some View {
         HStack(spacing: 8) {
-            Button {
-                recording.toggle()
-            } label: {
-                Text(recording ? "Press a shortcut… (Esc to cancel)" : state.config.hotKeyLabel)
-                    .font(.system(size: 12, weight: recording ? .regular : .semibold, design: .rounded))
-                    .frame(minWidth: 180)
+            RecorderControl(label: state.config.hotKeyLabel) { code, carbon, label in
+                state.config.hotKeyCode = code
+                state.config.hotKeyCarbonModifiers = carbon
+                state.config.hotKeyLabel = label
+                state.saveConfig()
+                state.applyHotKey()
             }
-            .controlSize(.large)
-            .background {
-                if recording {
-                    KeyCaptureView(onKey: record, onCancel: { recording = false })
-                        .frame(width: 0, height: 0)
-                }
-            }
+            .frame(width: 220, height: 30)
 
             if state.config.hotKeyLabel != "⌥Space" {
-                Button("Reset") { reset() }
-                    .controlSize(.small)
+                Button("Reset") {
+                    state.config.hotKeyCode = 49
+                    state.config.hotKeyCarbonModifiers = Int(optionKey)
+                    state.config.hotKeyLabel = "⌥Space"
+                    state.saveConfig()
+                    state.applyHotKey()
+                }
+                .controlSize(.small)
             }
         }
     }
+}
 
-    private func reset() {
-        state.config.hotKeyCode = 49
-        state.config.hotKeyCarbonModifiers = Int(optionKey)
-        state.config.hotKeyLabel = "⌥Space"
-        state.saveConfig()
-        state.applyHotKey()
+private struct RecorderControl: NSViewRepresentable {
+    let label: String
+    let onCapture: (Int, Int, String) -> Void
+
+    func makeNSView(context: Context) -> RecorderButton {
+        let b = RecorderButton()
+        b.bezelStyle = .rounded
+        b.onCapture = onCapture
+        b.baseLabel = label
+        return b
     }
 
-    private func record(_ event: NSEvent) {
+    func updateNSView(_ nsView: RecorderButton, context: Context) {
+        nsView.onCapture = onCapture
+        nsView.baseLabel = label
+    }
+}
+
+final class RecorderButton: NSButton {
+    var onCapture: ((Int, Int, String) -> Void)?
+    var baseLabel: String = "⌥Space" { didSet { if !recording { title = baseLabel } } }
+
+    private var recording = false {
+        didSet { title = recording ? "Press a shortcut… (Esc cancels)" : baseLabel; needsDisplay = true }
+    }
+
+    /// Standalone keys that are safe as a bare summon shortcut (no modifier needed).
+    private static let functionKeys: Set<Int> =
+        [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111, 105, 107, 113, 106, 64, 79, 80, 90]
+
+    override init(frame: NSRect) { super.init(frame: frame); commonInit() }
+    required init?(coder: NSCoder) { super.init(coder: coder); commonInit() }
+    private func commonInit() {
+        title = baseLabel
+        font = .systemFont(ofSize: 12, weight: .semibold)
+        setButtonType(.momentaryChange)
+        focusRingType = .default
+    }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        if recording { endRecording() } else { startRecording() }
+    }
+
+    private func startRecording() {
+        recording = true
+        let ok = window?.makeFirstResponder(self) ?? false
+        HotKeyDebug.log("startRecording — firstResponder=\(ok), keyWindow=\(window?.isKeyWindow ?? false)")
+    }
+
+    private func endRecording() {
+        recording = false
+        window?.makeFirstResponder(nil)
+    }
+
+    override func resignFirstResponder() -> Bool {
+        if recording { recording = false }
+        return super.resignFirstResponder()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if !capture(event) { super.keyDown(with: event) }
+    }
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if recording, capture(event) { return true }
+        return super.performKeyEquivalent(with: event)
+    }
+
+    @discardableResult
+    private func capture(_ event: NSEvent) -> Bool {
+        guard recording else { return false }
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         let carbon = carbonModifiers(mods)
-        // Require at least one non-shift modifier so we don't capture a bare key
-        // (which would hijack normal typing). Keep listening until they do.
-        guard (carbon & ~UInt32(shiftKey)) != 0 else { return }
+        HotKeyDebug.log("key code=\(event.keyCode) carbon=\(carbon) chars=\(event.charactersIgnoringModifiers ?? "")")
 
-        state.config.hotKeyCode = Int(event.keyCode)
-        state.config.hotKeyCarbonModifiers = Int(carbon)
-        state.config.hotKeyLabel = label(mods: mods, event: event)
-        state.saveConfig()
-        state.applyHotKey()
-        recording = false
+        if event.keyCode == 53 { HotKeyDebug.log("esc — cancel"); endRecording(); return true }
+
+        let hasModifier = (carbon & ~UInt32(shiftKey)) != 0
+        let isFunctionKey = Self.functionKeys.contains(Int(event.keyCode))
+        guard hasModifier || isFunctionKey else {
+            HotKeyDebug.log("rejected — needs a non-shift modifier (or a function key)")
+            return true // consume but keep waiting
+        }
+
+        let label = labelString(mods: mods, event: event)
+        HotKeyDebug.log("CAPTURED \(label) (code \(event.keyCode), carbon \(carbon)) — saved")
+        onCapture?(Int(event.keyCode), Int(carbon), label)
+        endRecording()
+        return true
     }
 
     private func carbonModifiers(_ mods: NSEvent.ModifierFlags) -> UInt32 {
@@ -68,7 +138,7 @@ struct HotKeyRecorder: View {
         return c
     }
 
-    private func label(mods: NSEvent.ModifierFlags, event: NSEvent) -> String {
+    private func labelString(mods: NSEvent.ModifierFlags, event: NSEvent) -> String {
         var s = ""
         if mods.contains(.control) { s += "⌃" }
         if mods.contains(.option) { s += "⌥" }
@@ -87,6 +157,9 @@ struct HotKeyRecorder: View {
         case 123: return "←"; case 124: return "→"; case 125: return "↓"; case 126: return "↑"
         case 122: return "F1"; case 120: return "F2"; case 99: return "F3"; case 118: return "F4"
         case 96: return "F5"; case 97: return "F6"; case 98: return "F7"; case 100: return "F8"
+        case 101: return "F9"; case 109: return "F10"; case 103: return "F11"; case 111: return "F12"
+        case 105: return "F13"; case 107: return "F14"; case 113: return "F15"; case 106: return "F16"
+        case 64: return "F17"; case 79: return "F18"; case 80: return "F19"; case 90: return "F20"
         default:
             let ch = event.charactersIgnoringModifiers ?? ""
             return ch.isEmpty ? "Key\(event.keyCode)" : ch.uppercased()
@@ -94,47 +167,20 @@ struct HotKeyRecorder: View {
     }
 }
 
-/// A zero-size NSView that grabs first-responder status and forwards the next
-/// key event up to SwiftUI. Reliable inside a settings window where NSEvent
-/// local monitors are not.
-private struct KeyCaptureView: NSViewRepresentable {
-    let onKey: (NSEvent) -> Void
-    let onCancel: () -> Void
+/// Lightweight file log so we can see whether capture fires and what was pressed.
+enum HotKeyDebug {
+    private static let url = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent(".max/hotkey-debug.log")
 
-    func makeNSView(context: Context) -> CaptureView {
-        let view = CaptureView()
-        view.onKey = onKey
-        view.onCancel = onCancel
-        return view
-    }
-
-    func updateNSView(_ nsView: CaptureView, context: Context) {
-        nsView.onKey = onKey
-        nsView.onCancel = onCancel
-        // Become first responder once the view is in a key window.
-        DispatchQueue.main.async {
-            nsView.window?.makeFirstResponder(nsView)
-        }
-    }
-
-    final class CaptureView: NSView {
-        var onKey: ((NSEvent) -> Void)?
-        var onCancel: (() -> Void)?
-
-        override var acceptsFirstResponder: Bool { true }
-        override func viewDidMoveToWindow() { window?.makeFirstResponder(self) }
-
-        override func keyDown(with event: NSEvent) {
-            if event.keyCode == 53 { onCancel?(); return } // Esc
-            onKey?(event)
-        }
-
-        // Catch ⌘/⌥-combos that the responder chain would otherwise route to
-        // menus or controls before keyDown.
-        override func performKeyEquivalent(with event: NSEvent) -> Bool {
-            if event.keyCode == 53 { onCancel?(); return true }
-            onKey?(event)
-            return true
+    static func log(_ msg: String) {
+        let line = "[\(Date())] \(msg)\n"
+        guard let data = line.data(using: .utf8) else { return }
+        if let handle = try? FileHandle(forWritingTo: url) {
+            defer { try? handle.close() }
+            handle.seekToEndOfFile()
+            handle.write(data)
+        } else {
+            try? data.write(to: url)
         }
     }
 }
