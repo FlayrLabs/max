@@ -174,6 +174,11 @@ struct AnthropicProvider: LLMProvider {
             switch block {
             case .text(let t):
                 content.append(["type": "text", "text": t])
+            case .image(let img):
+                content.append([
+                    "type": "image",
+                    "source": ["type": "base64", "media_type": img.mediaType, "data": img.base64],
+                ])
             case .toolUse(let id, let name, let inputJSON):
                 content.append([
                     "type": "tool_use",

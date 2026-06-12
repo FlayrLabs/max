@@ -1,5 +1,19 @@
 import SwiftUI
 import Combine
+import AppKit
+import UniformTypeIdentifiers
+
+/// A file or image the user dropped on the pill, pending the next message.
+struct PendingAttachment: Identifiable, Equatable {
+    let id = UUID()
+    enum Kind: Equatable {
+        case image(ImagePayload)
+        case file(path: String)
+    }
+    let kind: Kind
+    let name: String
+    var isImage: Bool { if case .image = kind { return true }; return false }
+}
 
 // MARK: - UI message model
 
@@ -46,6 +60,7 @@ final class AppState: ObservableObject {
     @Published var isWorking = false          // a chat turn is in flight
     @Published var loopActivity = false       // a background loop is running
     @Published var draft = ""
+    @Published var pendingAttachments: [PendingAttachment] = []
 
     /// Wired by the AppDelegate to show/hide the chat panel.
     var onChatOpenChanged: ((Bool) -> Void)?
@@ -171,11 +186,65 @@ final class AppState: ObservableObject {
     }
 
     func submitDraft() {
-        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !isWorking else { return }
+        let typed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let attachments = pendingAttachments
+        guard !(typed.isEmpty && attachments.isEmpty), !isWorking else { return }
+
+        let images = attachments.compactMap { a -> ImagePayload? in
+            if case .image(let p) = a.kind { return p }; return nil
+        }
+        let files = attachments.compactMap { a -> String? in
+            if case .file(let path) = a.kind { return path }; return nil
+        }
+
+        var text = typed
+        if !files.isEmpty {
+            text += (text.isEmpty ? "" : "\n\n")
+                + "Attached files (use read_file or exec to inspect):\n"
+                + files.map { "- \($0)" }.joined(separator: "\n")
+        }
+        if text.isEmpty && !images.isEmpty { text = "(see attached image)" }
+
         draft = ""
+        pendingAttachments = []
         openChat()
-        send(text)
+        send(text, images: images)
+    }
+
+    // MARK: Drag & drop attachments
+
+    /// Handle items dropped on the pill (file URLs from Finder, or raw image data).
+    func handleDrop(_ providers: [NSItemProvider]) {
+        for provider in providers {
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                    guard let data = item as? Data,
+                          let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
+                    Task { @MainActor in self.addAttachment(url: url) }
+                }
+            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
+                    guard let data, let payload = SeeScreenTool.jpegPayload(fromData: data, maxPixels: 1500, quality: 0.72) else { return }
+                    Task { @MainActor in
+                        self.pendingAttachments.append(.init(kind: .image(payload), name: "image"))
+                    }
+                }
+            }
+        }
+    }
+
+    private func addAttachment(url: URL) {
+        let name = url.lastPathComponent
+        let isImage = (UTType(filenameExtension: url.pathExtension)?.conforms(to: .image)) ?? false
+        if isImage, let payload = SeeScreenTool.jpegPayload(from: url, maxPixels: 1500, quality: 0.72) {
+            pendingAttachments.append(.init(kind: .image(payload), name: name))
+        } else {
+            pendingAttachments.append(.init(kind: .file(path: url.path), name: name))
+        }
+    }
+
+    func removeAttachment(_ id: PendingAttachment.ID) {
+        pendingAttachments.removeAll { $0.id == id }
     }
 
     /// A message arriving from a channel (iMessage). Joins the current
@@ -200,18 +269,19 @@ final class AppState: ObservableObject {
     /// (history is preserved on disk and reachable from the conversation menu).
     func clearConversation() { newConversation() }
 
-    private func send(_ text: String, onFinal: ((String) -> Void)? = nil) {
+    private func send(_ text: String, images: [ImagePayload] = [], onFinal: ((String) -> Void)? = nil) {
         // Defensive: commit any leftover live bubble before starting a new turn
         // so a previous reply can never bleed into this one.
         finishLiveBubble()
-        messages.append(ChatMessageVM(kind: .user, text: text))
+        let shown = images.isEmpty ? text : (text + (text.isEmpty ? "" : "  ") + "🖼️×\(images.count)")
+        messages.append(ChatMessageVM(kind: .user, text: shown))
         isWorking = true
         let config = self.config
 
         currentTask = Task { [weak self] in
             guard let self else { return }
             var finalText = ""
-            for await event in AgentLoop.run(session: self.session, userText: text, config: config) {
+            for await event in AgentLoop.run(session: self.session, userText: text, config: config, images: images) {
                 if Task.isCancelled { break }
                 if case .turnEnded(let t) = event { finalText = t }
                 if case .failed(let message) = event { finalText = "Something went wrong: \(message)" }

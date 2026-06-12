@@ -1,7 +1,7 @@
 import Foundation
 
 /// Append-only JSONL transcript, OpenClaw-style. One file per session under
-/// ~/.askmax/sessions/. The main chat uses a single persistent session;
+/// ~/.max/sessions/. The main chat uses a single persistent session;
 /// loop runs get isolated sessions.
 final class ChatSession {
     let id: String

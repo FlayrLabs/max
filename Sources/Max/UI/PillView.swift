@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// The flowing conic-gradient outline from flayr-studio's "closed_working" pill state —
 /// blue → purple → pink, 4s spin.
@@ -37,51 +38,21 @@ struct PillView: View {
     @EnvironmentObject var state: AppState
     @ObservedObject private var focusBus = FocusBus.shared
     @FocusState private var focused: Bool
+    @State private var dropTarget = false
 
     private var busy: Bool { state.isWorking || state.loopActivity }
+    private var canSubmit: Bool {
+        !state.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !state.pendingAttachments.isEmpty
+    }
 
     var body: some View {
         GlassEffectContainer {
-            HStack(spacing: 12) {
-                DuckIcon(size: 24)
-                    .opacity(busy ? 0.6 : 1)
-                    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: busy)
-
-                TextField("Ask Max to do anything…", text: $state.draft, axis: .vertical)
-                    .textFieldStyle(.plain)
-                    .font(state.chatFont(1.5, weight: .semibold))
-                    .lineLimit(1...3)
-                    .focused($focused)
-                    .onSubmit { state.submitDraft() }
-
-                if state.isWorking {
-                    Button(action: { state.stop() }) {
-                        Label("Stop", systemImage: "square.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .labelStyle(.titleAndIcon)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.glass)
-                } else {
-                    Button(action: { state.submitDraft() }) {
-                        Label("Enter", systemImage: "return")
-                            .font(.system(size: 11, weight: .bold))
-                            .labelStyle(.titleAndIcon)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.glass)
-                    .disabled(state.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            VStack(spacing: 8) {
+                if !state.pendingAttachments.isEmpty {
+                    attachmentStrip
                 }
-
-                Button(action: { state.toggleChat() }) {
-                    Image(systemName: state.chatOpen ? "chevron.down" : "chevron.up")
-                        .font(.system(size: 12, weight: .bold))
-                        .padding(6)
-                }
-                .buttonStyle(.glass)
-                .help(state.chatOpen ? "Hide chat" : "Show chat")
+                inputRow
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
@@ -92,7 +63,14 @@ struct PillView: View {
             .overlay {
                 if busy {
                     WorkingOutline(cornerRadius: 30)
+                } else if dropTarget {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .strokeBorder(Color.accentColor.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
                 }
+            }
+            .onDrop(of: [.fileURL, .image], isTargeted: $dropTarget) { providers in
+                state.handleDrop(providers)
+                return true
             }
         }
         .padding(.horizontal, 20)
@@ -101,5 +79,79 @@ struct PillView: View {
             focused = true
         }
         .onAppear { focused = true }
+    }
+
+    private var inputRow: some View {
+        HStack(spacing: 12) {
+            DuckIcon(size: 24)
+                .opacity(busy ? 0.6 : 1)
+                .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: busy)
+
+            TextField("Ask Max to do anything…", text: $state.draft, axis: .vertical)
+                .textFieldStyle(.plain)
+                .font(state.chatFont(1.5, weight: .semibold))
+                .lineLimit(1...3)
+                .focused($focused)
+                .onSubmit { state.submitDraft() }
+
+            if state.isWorking {
+                Button(action: { state.stop() }) {
+                    Label("Stop", systemImage: "square.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .labelStyle(.titleAndIcon)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.glass)
+            } else {
+                Button(action: { state.submitDraft() }) {
+                    Label("Enter", systemImage: "return")
+                        .font(.system(size: 11, weight: .bold))
+                        .labelStyle(.titleAndIcon)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.glass)
+                .disabled(!canSubmit)
+            }
+
+            Button(action: { state.toggleChat() }) {
+                Image(systemName: state.chatOpen ? "chevron.down" : "chevron.up")
+                    .font(.system(size: 12, weight: .bold))
+                    .padding(6)
+            }
+            .buttonStyle(.glass)
+            .help(state.chatOpen ? "Hide chat" : "Show chat")
+        }
+    }
+
+    private var attachmentStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(state.pendingAttachments) { attachment in
+                    HStack(spacing: 6) {
+                        Image(systemName: attachment.isImage ? "photo.fill" : "doc.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Text(attachment.name)
+                            .font(.system(size: 11.5, weight: .medium))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .frame(maxWidth: 140)
+                        Button { state.removeAttachment(attachment.id) } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .glassEffect(.regular.tint(.white.opacity(0.06)), in: .capsule)
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
