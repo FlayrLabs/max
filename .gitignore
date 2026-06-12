@@ -1,0 +1,15 @@
+# SwiftPM
+.build/
+.swiftpm/
+
+# Built app bundle
+dist/
+
+# macOS
+.DS_Store
+
+# Local data (never committed; lives in ~/.askmax at runtime)
+*.log
+
+# Generated icon intermediates
+Resources/AppIcon.iconset/

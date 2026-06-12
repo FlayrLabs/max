@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Max — your Mac, on autopilot</title>
+  <meta name="description" content="Max is a native macOS assistant that actually operates your Mac. Summon it with a keystroke, talk to it from anywhere, and let it run things for you." />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="apple-touch-icon" href="assets/icon.png" />
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,500&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="aurora" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a class="brand" href="#top">
+      <img src="assets/duck.png" alt="" class="brand-duck" />
+      <span>Ask Max</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#everywhere">Everywhere</a>
+      <a href="#safety">Safety</a>
+      <a href="https://github.com/flayrlabs/askmax" class="nav-ghost">GitHub</a>
+      <a href="#download" class="nav-cta">Download</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-icon reveal" data-d="0">
+      <img src="assets/icon.png" alt="Max app icon" />
+    </div>
+    <p class="eyebrow reveal" data-d="1">Native&nbsp;·&nbsp;macOS</p>
+    <h1 class="reveal" data-d="2">Your Mac,<br /><span class="grad">on autopilot.</span></h1>
+    <p class="lede reveal" data-d="3">
+      Max is an assistant that actually <em>operates</em> your Mac. Summon Max
+      with a keystroke, text it from your phone, and let it run things for you —
+      with your own AI key and your rules.
+    </p>
+    <div class="cta-row reveal" data-d="4">
+      <a class="btn btn-primary" href="#download">
+        <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M13.5 12.2c-.23.53-.5 1.02-.82 1.47-.43.62-.79 1.05-1.06 1.28-.42.4-.88.6-1.36.62-.35 0-.77-.1-1.26-.3-.5-.2-.95-.3-1.37-.3-.43 0-.9.1-1.4.3-.51.2-.92.31-1.23.32-.47.02-.93-.19-1.39-.62-.3-.26-.67-.7-1.11-1.34-.47-.68-.86-1.46-1.16-2.36-.32-.97-.48-1.9-.48-2.81 0-1.04.23-1.93.68-2.68a3.98 3.98 0 0 1 1.4-1.42c.59-.35 1.22-.53 1.9-.54.37 0 .86.11 1.46.34.6.22.99.34 1.16.34.13 0 .56-.14 1.29-.4.69-.25 1.27-.35 1.75-.31 1.3.1 2.28.62 2.92 1.55-1.16.7-1.74 1.69-1.72 2.95.01.98.37 1.8 1.07 2.45.32.3.67.53 1.06.7-.08.25-.17.48-.27.71M9.4 3.1c0 .77-.28 1.5-.85 2.17-.68.8-1.5 1.26-2.4 1.19a2.4 2.4 0 0 1-.01-.3c0-.74.32-1.53.89-2.18.28-.33.65-.6 1.1-.82.44-.21.86-.33 1.25-.35.01.1.02.2.02.29"/></svg>
+        Download for Mac
+      </a>
+      <a class="btn btn-ghost" href="https://github.com/flayrlabs/askmax">
+        <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <p class="micro reveal" data-d="5">Free · Bring your own LLM key · Open source · macOS 26+</p>
+  </header>
+
+  <!-- DEMO -->
+  <section class="demo-wrap">
+    <div class="demo reveal">
+      <video class="demo-video" id="demo" playsinline muted loop poster="assets/icon.png" preload="none">
+        <source src="assets/demo.mp4" type="video/mp4" />
+      </video>
+      <div class="demo-placeholder" id="demoPlaceholder">
+        <button class="play" id="playBtn" aria-label="Play demo">
+          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        </button>
+        <span>Demo</span>
+      </div>
+      <div class="demo-edge" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <p class="kicker reveal">What it does</p>
+    <h2 class="reveal">One keystroke from anything<br />you'd ever ask a computer.</h2>
+    <div class="grid">
+      <article class="card reveal" data-d="0">
+        <div class="card-ic">⌨︎</div>
+        <h3>The pill &amp; chat</h3>
+        <p>A floating Liquid&nbsp;Glass pill, anywhere, on your shortcut. Type, watch it work, close it — your conversation persists.</p>
+      </article>
+      <article class="card reveal" data-d="1">
+        <div class="card-ic">↻</div>
+        <h3>Loops</h3>
+        <p>Schedule Max. "Every morning, summarize my calendar." It runs on its own and pings you when it matters.</p>
+      </article>
+      <article class="card reveal" data-d="2">
+        <div class="card-ic">⎚</div>
+        <h3>It sees your screen</h3>
+        <p>Ask about whatever you're looking at. Max reads the screen — or just the text, privately — and answers in place.</p>
+      </article>
+      <article class="card reveal" data-d="3">
+        <div class="card-ic">⌥</div>
+        <h3>Full hands-on control</h3>
+        <p>Shell, AppleScript, files, apps. Max doesn't describe what to do — it does it, then tells you what happened.</p>
+      </article>
+      <article class="card reveal" data-d="4">
+        <div class="card-ic">◍</div>
+        <h3>Your key, your model</h3>
+        <p>Claude, OpenAI, or a fully-local model via Ollama. Keys live encrypted in the Keychain and never touch a server.</p>
+      </article>
+      <article class="card reveal" data-d="5">
+        <div class="card-ic">⌘</div>
+        <h3>Many Macs</h3>
+        <p>Connect your other Macs over SSH. Max is aware of all of them and can act on any one from a single conversation.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- EVERYWHERE -->
+  <section class="section channels" id="everywhere">
+    <div class="channels-inner">
+      <div class="channels-copy reveal">
+        <p class="kicker">Reach it anywhere</p>
+        <h2>Text Max from<br />your pocket.</h2>
+        <p class="muted">Give Max its own identity on the channels you already use. A real two-sided conversation, from your phone, your watch, anywhere — your Mac answers.</p>
+      </div>
+      <div class="chips">
+        <span class="chip reveal" data-d="0">iMessage</span>
+        <span class="chip reveal" data-d="1">Telegram</span>
+        <span class="chip reveal" data-d="2">Discord</span>
+        <span class="chip reveal" data-d="3">Slack</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY -->
+  <section class="section safety" id="safety">
+    <p class="kicker reveal">Built to be trusted</p>
+    <h2 class="reveal">Full access, on your terms.</h2>
+    <p class="lede center reveal">Max is powerful by design. So you stay in control of exactly how far it can go.</p>
+    <div class="safety-grid">
+      <div class="srow reveal" data-d="0"><b>Approve every command</b><span>Confirm shell, AppleScript &amp; remote actions before they run.</span></div>
+      <div class="srow reveal" data-d="1"><b>Command denylist</b><span>Hard-block dangerous commands everywhere — pill, loops, channels.</span></div>
+      <div class="srow reveal" data-d="2"><b>Spend limits</b><span>A daily cap on AI usage. Max stops when it's reached.</span></div>
+      <div class="srow reveal" data-d="3"><b>Kill switch</b><span>Pause all tool use instantly from the menu bar.</span></div>
+      <div class="srow reveal" data-d="4"><b>Encrypted keys</b><span>API keys &amp; tokens stored in the macOS Keychain.</span></div>
+      <div class="srow reveal" data-d="5"><b>Open source</b><span>Read every line. Nothing leaves your Mac but your model calls.</span></div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section class="download" id="download">
+    <div class="download-card reveal">
+      <img src="assets/duck.png" alt="" class="dl-duck" />
+      <h2>Get Max.</h2>
+      <p>macOS 26 or later. Bring your own AI key. Use at your own risk — Max has real control of your machine.</p>
+      <div class="cta-row center">
+        <a class="btn btn-primary" href="https://github.com/flayrlabs/askmax/releases">Download for Mac</a>
+        <a class="btn btn-ghost" href="https://github.com/flayrlabs/askmax">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <a class="brand" href="#top">
+        <img src="assets/duck.png" alt="" class="brand-duck" />
+        <span>Ask Max</span>
+      </a>
+      <div class="footer-links">
+        <a href="https://github.com/flayrlabs/askmax/releases">Download</a>
+        <a href="https://github.com/flayrlabs/askmax">GitHub</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <p class="copy">© <span id="year"></span> Flayr Labs · Use at your own risk.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
