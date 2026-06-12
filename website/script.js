@@ -44,6 +44,21 @@ function startDemo() {
 }
 playBtn?.addEventListener("click", startDemo);
 
+// Remote demo — autoplay (muted) when scrolled into view, pause when out of view.
+const remoteVideo = document.getElementById("remoteVideo");
+if (remoteVideo) {
+  const rio = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) remoteVideo.play().catch(() => {});
+        else remoteVideo.pause();
+      }
+    },
+    { threshold: 0.35 }
+  );
+  rio.observe(remoteVideo);
+}
+
 // Subtle parallax on the hero glow
 const glow = document.querySelector(".hero-glow");
 if (glow && window.matchMedia("(pointer:fine)").matches) {
