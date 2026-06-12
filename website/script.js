@@ -30,34 +30,23 @@ document.querySelectorAll(".card").forEach((card) => {
   });
 });
 
-// Demo video — only wire playback if a source actually loads.
-const video = document.getElementById("demo");
-const placeholder = document.getElementById("demoPlaceholder");
-const playBtn = document.getElementById("playBtn");
-
-function startDemo() {
-  if (!video) return;
-  video.play().then(() => {
-    placeholder.style.opacity = "0";
-    placeholder.style.pointerEvents = "none";
-  }).catch(() => { /* no source yet — leave the placeholder */ });
-}
-playBtn?.addEventListener("click", startDemo);
-
-// Remote demo — autoplay (muted) when scrolled into view, pause when out of view.
-const remoteVideo = document.getElementById("remoteVideo");
-if (remoteVideo) {
-  const rio = new IntersectionObserver(
+// Demo videos — autoplay (muted) when scrolled into view, pause when out of view.
+function autoplayOnScroll(id) {
+  const v = document.getElementById(id);
+  if (!v) return;
+  const o = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) remoteVideo.play().catch(() => {});
-        else remoteVideo.pause();
+        if (e.isIntersecting) v.play().catch(() => {});
+        else v.pause();
       }
     },
     { threshold: 0.35 }
   );
-  rio.observe(remoteVideo);
+  o.observe(v);
 }
+autoplayOnScroll("demo");
+autoplayOnScroll("remoteVideo");
 
 // Subtle parallax on the hero glow
 const glow = document.querySelector(".hero-glow");
