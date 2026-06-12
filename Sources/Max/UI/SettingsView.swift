@@ -41,7 +41,7 @@ struct SettingsRootView: View {
             .navigationSplitViewColumnWidth(min: 180, ideal: 195, max: 220)
         } detail: {
             detail
-                .navigationTitle(selection?.title ?? "AskMax")
+                .navigationTitle(selection?.title ?? "Max")
         }
         .frame(minWidth: 740, idealWidth: 780, minHeight: 560, idealHeight: 600)
     }
@@ -341,7 +341,7 @@ private struct IMessageTab: View {
                             NSWorkspace.shared.open(url)
                         }
                     }
-                    Text("Reading the Messages database requires adding AskMax under Full Disk Access. Sending replies will also prompt once to allow controlling Messages.")
+                    Text("Reading the Messages database requires adding Max under Full Disk Access. Sending replies will also prompt once to allow controlling Messages.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }

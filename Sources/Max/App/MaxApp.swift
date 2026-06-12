@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main
-struct AskMaxApp: App {
+struct MaxApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
@@ -45,7 +45,7 @@ final class FloatingPanel: NSPanel {
         if titled {
             titlebarAppearsTransparent = true
             titleVisibility = .hidden
-            title = "AskMax"
+            title = "Max"
         }
     }
 
@@ -103,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             backing: .buffered, defer: false
         )
         window.titlebarAppearsTransparent = true
-        window.title = "AskMax"
+        window.title = "Max"
         window.isReleasedWhenClosed = false
         window.level = .floating
         window.contentView = NSHostingView(rootView: RiskConsentView(
@@ -278,7 +278,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         menu.addItem(withTitle: "Settings…", action: #selector(menuSettings), keyEquivalent: ",")
         menu.addItem(withTitle: "New Conversation", action: #selector(menuClear), keyEquivalent: "")
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(withTitle: "Quit AskMax", action: #selector(menuQuit), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Max", action: #selector(menuQuit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
         statusItem.menu = menu
     }
@@ -335,7 +335,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
                 backing: .buffered,
                 defer: false
             )
-            window.title = "AskMax"
+            window.title = "Max"
             window.isReleasedWhenClosed = false
             window.delegate = self
             // Float above the always-on-top pill/chat panels, otherwise an

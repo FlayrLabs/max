@@ -1,11 +1,11 @@
 import Foundation
 import Security
 
-/// Where AskMax keeps everything: ~/.askmax/
+/// Where Max keeps everything: ~/.max/
 /// soul.md, config.json, loops.json, sessions/*.jsonl
 enum MaxPaths {
     static var root: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".askmax", isDirectory: true)
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".max", isDirectory: true)
     }
     static var soulFile: URL { root.appendingPathComponent("soul.md") }
     static var configFile: URL { root.appendingPathComponent("config.json") }
@@ -198,7 +198,7 @@ enum Soul {
 
 /// Secret storage backed by the macOS Keychain.
 ///
-/// Keys and tokens live as encrypted generic-password items, gated to AskMax by
+/// Keys and tokens live as encrypted generic-password items, gated to Max by
 /// its (now stable) code signature — never in plaintext on disk. This works
 /// without recurring password prompts because the app is signed with a stable
 /// self-signed identity (see scripts/make-signing-cert.sh); the Keychain ACL is
@@ -248,7 +248,7 @@ enum Keychain {
     private static func baseQuery(_ key: String) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "com.flayrlabs.askmax.\(key)",
+            kSecAttrService as String: "com.flayrlabs.max.\(key)",
             kSecAttrAccount as String: "secret",
         ]
     }

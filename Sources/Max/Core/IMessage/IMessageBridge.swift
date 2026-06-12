@@ -19,6 +19,7 @@ final class IMessageBridge: ObservableObject {
     private var lastRowId: Int64 = 0
     private var recentlySent: [(text: String, at: Date)] = []
     private var queue: [(handle: String, text: String)] = []
+    private var ownHandles: Set<String> = [] // this Mac's own iMessage addresses (normalized)
     private var processing = false
     private var repliesThisMinute = 0
     private var minuteWindowStart = Date()
@@ -51,9 +52,17 @@ final class IMessageBridge: ObservableObject {
         }
         status = "listening"
         lastError = nil
+        // Auto-detect this Mac's own iMessage handles (number + Apple-ID emails)
+        // so the user never has to allowlist their own addresses.
+        Task.detached(priority: .utility) {
+            let handles = Self.detectOwnHandles()
+            await MainActor.run { self.ownHandles = handles }
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.tick() }
         }
+        // Run on common modes so it keeps polling during menu/UI interaction.
+        if let timer { RunLoop.main.add(timer, forMode: .common) }
     }
 
     func stop() {
@@ -83,7 +92,7 @@ final class IMessageBridge: ObservableObject {
             guard let result = Self.fetchMessages(after: after) else {
                 Self.debugLog("FETCH FAILED (no Full Disk Access?) after=\(after)")
                 await MainActor.run {
-                    self.lastError = "Can't read the Messages database — grant AskMax Full Disk Access."
+                    self.lastError = "Can't read the Messages database — grant Max Full Disk Access."
                     self.status = "blocked"
                 }
                 return
@@ -109,45 +118,47 @@ final class IMessageBridge: ObservableObject {
         }
         recentlySent.removeAll { $0.at.timeIntervalSinceNow < -300 }
 
+        // One normalized set of trusted handles: this Mac's own addresses
+        // (auto-detected) + the configured self-handle + the manual allowlist.
+        // A message is authorized if it involves any of these — whether it
+        // arrives as a note-to-self (is_from_me) or from one of your other
+        // Apple IDs / allowed people (not from-me).
+        var trusted = ownHandles
+        for h in (allowlist + [selfHandle]) where !h.isEmpty {
+            trusted.insert(Self.normalize(h))
+        }
+
         for message in messages {
             let text = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            // Note-to-self thread: you texting your own account. These are
-            // marked is_from_me, so the conversation identifier (not the sender)
-            // is what tells us it's the self thread.
-            let isSelfThread = !selfHandle.isEmpty
-                && Self.matches(handle: message.chatIdentifier, allowlist: [selfHandle])
+            let chatNorm = Self.normalize(message.chatIdentifier)
+            let senderNorm = Self.normalize(message.handle)
 
             var decision = ""
             defer {
                 Self.debugLog("row=\(message.rowId) fromMe=\(message.isFromMe) " +
                     "handle='\(message.handle)' chat='\(message.chatIdentifier)' " +
-                    "selfThread=\(isSelfThread) textLen=\(text.count) " +
-                    "text='\(text.prefix(40))' -> \(decision)")
+                    "textLen=\(text.count) text='\(text.prefix(40))' -> \(decision)")
             }
 
             guard !text.isEmpty else { decision = "skip: empty text"; continue }
+            // Max's own replies carry the marker — never react to them.
+            if text.hasPrefix(Self.replyMarker) { decision = "skip: own reply (marker)"; continue }
+            if recentlySent.contains(where: { $0.text == text }) { decision = "skip: own reply"; continue }
 
             if message.isFromMe {
-                guard isSelfThread else { decision = "skip: from-me, not self thread"; continue }
-                // Max's own replies carry the marker — skip them (loop guard,
-                // survives even if recentlySent has expired).
-                if text.hasPrefix(Self.replyMarker) {
-                    decision = "skip: own reply (marker)"; continue
-                }
-                if recentlySent.contains(where: { $0.text == text }) {
-                    decision = "skip: own reply"; continue
-                }
+                // You texting yourself: the conversation must be with one of your
+                // own trusted handles.
+                guard trusted.contains(chatNorm) else { decision = "skip: from-me, untrusted thread"; continue }
                 let replyTo = message.chatIdentifier.isEmpty ? selfHandle : message.chatIdentifier
                 queue.append((handle: replyTo, text: text))
                 decision = "QUEUED (self) replyTo=\(replyTo)"
             } else {
-                guard !message.handle.isEmpty,
-                      Self.matches(handle: message.handle, allowlist: allowlist) else {
-                    decision = "skip: sender not allowlisted"; continue
+                // From another identity: the sender must be trusted.
+                guard !message.handle.isEmpty, trusted.contains(senderNorm) else {
+                    decision = "skip: sender not trusted"; continue
                 }
                 queue.append((handle: message.handle, text: text))
-                decision = "QUEUED (allowlist)"
+                decision = "QUEUED (trusted sender)"
             }
         }
         processNext()
@@ -221,7 +232,7 @@ final class IMessageBridge: ObservableObject {
         return allowlist.contains { normalize($0) == normalizedHandle }
     }
 
-    private static func normalize(_ raw: String) -> String {
+    nonisolated private static func normalize(_ raw: String) -> String {
         let lower = raw.lowercased().trimmingCharacters(in: .whitespaces)
         if lower.contains("@") { return lower }
         // Phone: compare by last 10 digits so +1 prefixes etc. don't matter.
@@ -237,6 +248,33 @@ final class IMessageBridge: ObservableObject {
         let isFromMe: Bool
         let handle: String          // the sender (empty for your own / note-to-self)
         let chatIdentifier: String  // the conversation's handle (your own for note-to-self)
+    }
+
+    /// This Mac's own iMessage send/receive handles, read from chat.account_login
+    /// ("iMessage;-;+1555…" / "iMessage;-;you@icloud.com"). Returns normalized
+    /// handles so the user never has to allowlist their own addresses.
+    nonisolated static func detectOwnHandles() -> Set<String> {
+        var db: OpaquePointer?
+        guard sqlite3_open_v2(dbPath, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK, db != nil else {
+            sqlite3_close(db); return []
+        }
+        defer { sqlite3_close(db) }
+        var stmt: OpaquePointer?
+        let sql = "SELECT DISTINCT account_login FROM chat WHERE account_login IS NOT NULL"
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return [] }
+        defer { sqlite3_finalize(stmt) }
+        var handles: Set<String> = []
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            guard let c = sqlite3_column_text(stmt, 0) else { continue }
+            let login = String(cString: c) // e.g. "iMessage;-;+16109054171"
+            if let last = login.split(separator: ";").last {
+                let h = String(last)
+                if h.contains("@") || h.contains(where: \.isNumber) {
+                    handles.insert(normalize(h))
+                }
+            }
+        }
+        return handles
     }
 
     nonisolated static func maxRowId() -> Int64? {

@@ -1,11 +1,11 @@
 #!/bin/zsh
 # Creates a stable self-signed code-signing identity in the login keychain so
-# AskMax keeps the SAME code signature across rebuilds. That makes macOS
+# Max keeps the SAME code signature across rebuilds. That makes macOS
 # permissions (Full Disk Access, Automation, Screen Recording) persist instead
 # of resetting every build the way ad-hoc signing does.
 set -euo pipefail
 
-CN="AskMax Local Signing"
+CN="Max Local Signing"
 KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 
 # find-identity hides self-signed/untrusted certs, so check by certificate name.

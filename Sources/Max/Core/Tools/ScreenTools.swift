@@ -40,7 +40,7 @@ struct SeeScreenTool: MaxTool {
             CGRequestScreenCaptureAccess()
             return .fail(
                 "Screen Recording permission is not granted. macOS just showed a prompt — " +
-                "tell the user to enable AskMax in System Settings → Privacy & Security → " +
+                "tell the user to enable Max in System Settings → Privacy & Security → " +
                 "Screen & System Audio Recording, then try again."
             )
         }
@@ -134,7 +134,7 @@ struct ReadScreenTextTool: MaxTool {
         guard trusted else {
             return .fail(
                 "Accessibility permission is not granted. macOS just showed a prompt — " +
-                "tell the user to enable AskMax in System Settings → Privacy & Security → " +
+                "tell the user to enable Max in System Settings → Privacy & Security → " +
                 "Accessibility, then try again."
             )
         }
