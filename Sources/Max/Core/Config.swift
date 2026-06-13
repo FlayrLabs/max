@@ -89,7 +89,7 @@ struct MaxConfig: Codable, Equatable {
     var paused: Bool = false                    // kill switch — blocks all tool runs
     var commandDenylist: [String] = []          // user patterns to always block
     var useDefaultDenylist: Bool = true         // also block the built-in dangerous set
-    var dailySpendLimitUSD: Double = 0          // 0 = unlimited
+    var dailySpendLimitUSD: Double = 10         // sane default cap; 0 = unlimited (set in Settings)
     // Global summon shortcut. Defaults to ⌥Space. keyCode is the virtual key;
     // modifiers is the Carbon modifier mask (optionKey = 2048).
     var hotKeyCode: Int = 49                    // kVK_Space
@@ -129,7 +129,7 @@ struct MaxConfig: Codable, Equatable {
         paused = try c.decodeIfPresent(Bool.self, forKey: .paused) ?? false
         commandDenylist = try c.decodeIfPresent([String].self, forKey: .commandDenylist) ?? []
         useDefaultDenylist = try c.decodeIfPresent(Bool.self, forKey: .useDefaultDenylist) ?? true
-        dailySpendLimitUSD = try c.decodeIfPresent(Double.self, forKey: .dailySpendLimitUSD) ?? 0
+        dailySpendLimitUSD = try c.decodeIfPresent(Double.self, forKey: .dailySpendLimitUSD) ?? 10
         hotKeyCode = try c.decodeIfPresent(Int.self, forKey: .hotKeyCode) ?? 49
         hotKeyCarbonModifiers = try c.decodeIfPresent(Int.self, forKey: .hotKeyCarbonModifiers) ?? 2048
         hotKeyLabel = try c.decodeIfPresent(String.self, forKey: .hotKeyLabel) ?? "⌥Space"

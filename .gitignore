@@ -8,7 +8,7 @@ dist/
 # macOS
 .DS_Store
 
-# Local data (never committed; lives in ~/.askmax at runtime)
+# Local data (never committed; lives in ~/.max at runtime)
 *.log
 
 # Generated icon intermediates
