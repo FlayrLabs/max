@@ -6,7 +6,7 @@
 
 Max is a native Mac assistant that operates your computer. Summon it with a keystroke, tell it what you want in plain language, and it runs apps, manages files, executes commands, and reads your screen to get the job done.
 
-**[⬇ Download for Mac](https://github.com/FlayrLabs/max/releases/latest/download/Max-macos.zip)**  ·  [askmax.flayrlabs.com](https://askmax.flayrlabs.com)
+**[⬇ Download for Mac](https://github.com/FlayrLabs/max/releases/latest/download/Max-macos.zip)**  ·  [trymax.io](https://trymax.io)
 
 > Max has real control of your Mac and carries out AI-generated actions. Keep approvals on, set a spend limit, and only allowlist people you trust. Provided as-is, without warranty — use at your own risk.
 
