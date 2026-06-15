@@ -1,95 +1,74 @@
-# Max — "Max", your Mac's AI assistant
+<p align="center">
+  <img src="website/assets/og.png" alt="Max — your Mac, on autopilot" width="640">
+</p>
 
-Max is a native macOS (Liquid Glass) personal assistant that actually operates
-your Mac. Summon a floating pill with **⌥Space**, type, and Max can run shell
-commands, control apps, read/write files, see your screen, schedule recurring
-tasks, talk to you over iMessage/Telegram/Discord/Slack, and control your other
-Macs over SSH. Bring your own LLM key (Anthropic / OpenAI) or run a local model
-via Ollama.
+# Max
 
-> ⚠️ **Full access, use at your own risk.** Max executes AI-generated actions on
-> your real machine. AI can be wrong or be manipulated by content it reads (web
-> pages, messages, files). Keep **Require approval** on, use the **command
-> denylist**, set a **spend limit**, and only allowlist people you trust. No
-> warranty — you accept the risk.
+Max is a native Mac assistant that operates your computer. Summon it with a keystroke, tell it what you want in plain language, and it runs apps, manages files, executes commands, and reads your screen to get the job done.
 
-## Install (downloaded build)
+**[⬇ Download for Mac](https://github.com/FlayrLabs/max/releases/latest/download/Max-macos.zip)**  ·  [askmax.flayrlabs.com](https://askmax.flayrlabs.com)
 
-Because this is signed with a local/self-signed identity (not yet notarized),
-macOS Gatekeeper will warn the first time:
+> Max has real control of your Mac and carries out AI-generated actions. Keep approvals on, set a spend limit, and only allowlist people you trust. Provided as-is, without warranty — use at your own risk.
 
-1. Move `Max.app` to `/Applications`.
-2. Right-click it → **Open** → **Open** (only needed once), **or** clear the
-   quarantine flag:
-   ```sh
-   xattr -dr com.apple.quarantine /Applications/Max.app
-   ```
-3. Launch it. There's no Dock window — look for the **sparkles bubble** in the
-   menu bar, and the pill at the bottom of the screen (⌥Space toggles it).
+## Requirements
 
-### Permissions Max may ask for
-- **Accessibility / Screen Recording** — for reading and seeing the screen.
-- **Full Disk Access** — only if you enable the iMessage channel (reads the
-  Messages database).
-- **Automation** — the first time it controls an app via AppleScript.
+- macOS 26 (Tahoe) or later
+- An AI provider key (Anthropic or OpenAI) — or run locally and free with [Ollama](https://ollama.com)
+
+## Install
+
+1. Download **Max-macos.zip** and unzip it.
+2. Drag **Max.app** into your Applications folder.
+3. Open it. Max has no Dock window — it lives in the menu bar (the duck icon). Press **⌥Space** to summon it.
+
+The download is signed and notarized by Apple, so it opens normally — no security workarounds needed.
 
 ## First run
-1. Accept the risk disclaimer.
-2. Settings (menu-bar icon → Settings) → **Model**: pick a provider and paste an
-   API key (stored encrypted in the macOS Keychain), or choose **Local (Ollama)**.
-3. Optional: **Safety** (approval mode, denylist, spend limit), **Channels**
-   (Telegram/Discord/Slack), **Devices** (other Macs), **Loops** (schedules).
 
-Data lives in `~/.max/` (config, soul.md, conversations, logs). Secrets are in
-the Keychain, never in plaintext. Everything Max did is logged to
-`~/.max/actions.log`.
+1. Accept the one-time risk notice.
+2. Open **Settings** (menu-bar duck → Settings) → **Model**, and either paste an API key (stored in the macOS Keychain) or select **Ollama** for local models.
+3. Grant the permissions Max requests as you use it: **Screen Recording** and **Accessibility** (to see and read the screen), **Automation** (to control apps), and **Full Disk Access** (only if you enable the iMessage channel).
+
+## What it can do
+
+Type a request and Max carries it out — for example:
+
+- "Clean up my Downloads folder and sort everything by type."
+- "Read the error on my screen and fix it."
+- "Install Tor Browser and open it."
+- "Rename these screenshots by date."
+
+It can also:
+
+- **Run on a schedule** — create *Loops* that run on their own, e.g. "every morning at 8, summarize my calendar and text it to me."
+- **Work from your phone** — connect Telegram, Discord, Slack, or iMessage and control your Mac from anywhere.
+- **Reach your other Macs** — run commands on machines you've added, over SSH.
+
+## Your keys, your data
+
+- Bring your own Anthropic or OpenAI key, or run fully local with Ollama. Nothing leaves your Mac except the model requests you choose to make.
+- API keys and channel tokens are stored in the macOS Keychain, never in plaintext.
+- Config, conversations, and logs live in `~/.max/`. Every action Max takes is recorded in `~/.max/actions.log`.
+
+## Safety
+
+- **Approvals** — by default Max asks before running each command you start from the desktop. (Scheduled loops and channel messages run unattended, so they rely on the denylist.)
+- **Command denylist** — dangerous commands are hard-blocked everywhere, on by default; add your own patterns.
+- **Spend limit** — a daily USD cap; Max stops when it's reached. Local models are free.
+- **Allowlists** — channels only respond to the user IDs you add.
+- **Kill switch** — pause all activity instantly from the menu bar.
+
+These reduce risk but don't eliminate it. AI can be wrong, or misled by content it reads. Review what Max does.
 
 ## Build from source
 
-Requires the Xcode 26+ command line tools (Swift 6, macOS 26 SDK).
+Requires the Xcode 26 command-line tools (Swift 6, macOS 26 SDK).
 
 ```sh
-./scripts/build-app.sh        # → dist/Max.app (stable self-signed)
+./scripts/build-app.sh   # → dist/Max.app
 open dist/Max.app
 ```
 
-The first build creates a stable self-signed code-signing certificate
-(`scripts/make-signing-cert.sh`) so macOS permissions persist across rebuilds.
+## License
 
-## Distribute to others (notarized)
-
-Self-signed is fine for your own machines; to hand the app to other people
-without Gatekeeper warnings you need a **Developer ID Application** certificate.
-The Apple account (Team **NRNU83UJ68**) already exists — you just need to create
-this one cert type (one time) and an app-specific password:
-
-1. **Create the Developer ID cert** (must be the team's Account Holder/Admin):
-   Xcode → Settings → Accounts → select the team → **Manage Certificates** →
-   **+** → **Developer ID Application**. (Or generate a CSR and download it from
-   developer.apple.com → Certificates.) It installs into your login Keychain.
-2. **App-specific password**: appleid.apple.com → Sign-In & Security →
-   App-Specific Passwords → create one for "Max notarization".
-3. **Build, sign, notarize, staple in one command** (Team ID is baked in):
-   ```sh
-   APPLE_ID="you@icloud.com" APP_PW="abcd-efgh-ijkl-mnop" ./scripts/build-app.sh
-   ```
-   The script auto-detects the Developer ID cert, signs with hardened runtime,
-   submits to Apple, waits, and staples the ticket. Override the identity with
-   `DEVELOPER_ID="Developer ID Application: … (NRNU83UJ68)"` if needed.
-
-After that, `dist/Max.app` opens on any Mac with no warning and no quarantine
-removal needed.
-
-## Safety model (read this)
-- **Approval** — "Ask" confirms each shell/AppleScript/remote command you start
-  from the pill. Loops and channel messages run unattended and can't prompt.
-- **Command denylist** — hard-blocks matching commands **everywhere** (pill,
-  loops, channels), independent of approval mode. A dangerous-defaults set is on
-  by default; add your own.
-- **Spend limit** — a configurable daily USD cap estimated from token usage;
-  Max stops making requests when reached. Local models are free.
-- **Allowlists** — channels only respond to user IDs you add.
-- **Pause** — a kill switch (menu bar or Settings → Safety) that blocks all tool
-  use instantly.
-
-These reduce risk; they don't eliminate it. Audit `~/.max/actions.log`.
+MIT — see [LICENSE](LICENSE). © 2026 Flayr Labs LLC.
