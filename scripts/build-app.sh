@@ -44,20 +44,23 @@ if [[ -n "${DEVELOPER_ID:-}" ]]; then
         --entitlements "$ENTITLEMENTS" --sign "$DEVELOPER_ID" "$APP"
     echo "✓ signed $APP"
 
-    if [[ -n "${APPLE_ID:-}" && -n "${APP_PW:-}" ]]; then
+    if [[ -n "${NOTARY_PROFILE:-}" || ( -n "${APPLE_ID:-}" && -n "${APP_PW:-}" ) ]]; then
         echo "▸ notarizing (team $TEAM_ID) — this can take a few minutes"
         ditto -c -k --keepParent "$APP" /tmp/Max-notarize.zip
-        xcrun notarytool submit /tmp/Max-notarize.zip \
-            --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_PW" --wait
+        if [[ -n "${NOTARY_PROFILE:-}" ]]; then
+            xcrun notarytool submit /tmp/Max-notarize.zip --keychain-profile "$NOTARY_PROFILE" --wait
+        else
+            xcrun notarytool submit /tmp/Max-notarize.zip \
+                --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_PW" --wait
+        fi
         xcrun stapler staple "$APP"
         rm -f /tmp/Max-notarize.zip
         echo "✓ notarized + stapled $APP"
     else
         echo ""
-        echo "To notarize (set APPLE_ID + APP_PW — an app-specific password):"
-        echo "  ditto -c -k --keepParent \"$APP\" /tmp/Max.zip"
-        echo "  xcrun notarytool submit /tmp/Max.zip --apple-id <you> --team-id $TEAM_ID --password <app-specific-pw> --wait"
-        echo "  xcrun stapler staple \"$APP\""
+        echo "To notarize: store credentials once (keeps the app-specific password in your keychain) —"
+        echo "  xcrun notarytool store-credentials \"max-notary\" --apple-id <you> --team-id $TEAM_ID"
+        echo "then re-run:  NOTARY_PROFILE=max-notary ./scripts/build-app.sh"
     fi
 else
     "$ROOT/scripts/make-signing-cert.sh" >/dev/null 2>&1 || true
