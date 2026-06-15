@@ -1,6 +1,9 @@
 <p align="center">
-  <img src="website/assets/og.png" alt="Max — your Mac, on autopilot" width="640">
+  <a href="https://www.youtube.com/watch?v=fAvWczONMqc">
+    <img src="https://img.youtube.com/vi/fAvWczONMqc/hqdefault.jpg" alt="Watch the Max demo" width="640">
+  </a>
 </p>
+<p align="center"><a href="https://www.youtube.com/watch?v=fAvWczONMqc"><b>▶ Watch the demo</b></a></p>
 
 # Max
 
