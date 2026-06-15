@@ -284,6 +284,9 @@ a { color: inherit; text-decoration: none; }
 /* Center the heading block (not just its text) in the centered section. */
 .section.safety > h2 { max-width: 760px; margin-left: auto; margin-right: auto; }
 .section.safety .lede { margin-top: 18px; }
+/* Center the "What it does" section header (cards stay left-aligned). */
+#features > .kicker, #features > h2 { text-align: center; }
+#features > h2 { margin-left: auto; margin-right: auto; }
 
 /* feature grid */
 .grid {
