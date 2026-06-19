@@ -48,7 +48,7 @@ enum LLMProviderKind: String, Codable, CaseIterable, Identifiable {
         case .openai:
             return ["gpt-5.2", "gpt-5.1", "gpt-5.1-codex"]
         case .ollama:
-            return ["llama3.2", "qwen2.5", "mistral"] // placeholders — real list comes from /api/tags
+            return [] // real list is fetched live from /api/tags; never hardcode (would offer uninstalled models)
         }
     }
     var needsAPIKey: Bool { self != .ollama }

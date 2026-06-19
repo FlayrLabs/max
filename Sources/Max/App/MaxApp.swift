@@ -98,8 +98,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
 
     private func showConsent() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 540, height: 360),
-            styleMask: [.titled, .fullSizeContentView],
+            contentRect: NSRect(x: 0, y: 0, width: 540, height: 480),
+            styleMask: [.titled, .fullSizeContentView, .resizable],
             backing: .buffered, defer: false
         )
         window.titlebarAppearsTransparent = true

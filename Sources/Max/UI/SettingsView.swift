@@ -152,7 +152,9 @@ private struct ModelTab: View {
     private var hasKey: Bool { !(SecretStore.apiKey(for: state.config.provider) ?? "").isEmpty }
 
     private var modelChoices: [String] {
-        if state.config.provider == .ollama, !localModels.isEmpty { return localModels }
+        // Ollama: only ever the live list from /api/tags — never hardcoded placeholders,
+        // so the picker can't offer a model that isn't actually installed.
+        if state.config.provider == .ollama { return localModels }
         return state.config.provider.models
     }
 
