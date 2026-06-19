@@ -29,6 +29,16 @@ cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 cp "$ROOT/Resources/DuckGlyph.png" "$APP/Contents/Resources/DuckGlyph.png"
 
+# Embed Sparkle.framework (auto-updater) and add an rpath so the binary finds it
+# in Contents/Frameworks at runtime (SwiftPM only bakes in @loader_path).
+FRAMEWORK_SRC="$(swift build -c release --show-bin-path)/Sparkle.framework"
+if [[ -d "$FRAMEWORK_SRC" ]]; then
+    mkdir -p "$APP/Contents/Frameworks"
+    cp -R "$FRAMEWORK_SRC" "$APP/Contents/Frameworks/"
+    install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/Max" 2>/dev/null || true
+    echo "▸ embedded Sparkle.framework"
+fi
+
 ENTITLEMENTS="$ROOT/Resources/Max.entitlements"
 TEAM_ID="${TEAM_ID:-NRNU83UJ68}"   # Apple Team ID (from the poundcake account)
 
@@ -39,8 +49,21 @@ if [[ -z "${DEVELOPER_ID:-}" ]]; then
 fi
 
 if [[ -n "${DEVELOPER_ID:-}" ]]; then
-    echo "▸ codesign (Developer ID: $DEVELOPER_ID) + hardened runtime"
-    codesign --force --deep --options runtime --timestamp \
+    echo "▸ codesign Sparkle.framework helpers + app (Developer ID: $DEVELOPER_ID) + hardened runtime"
+    FW="$APP/Contents/Frameworks/Sparkle.framework"
+    if [[ -d "$FW" ]]; then
+        # Notarization requires every nested executable to be signed — do them inside-out.
+        for c in \
+            "Versions/B/XPCServices/Downloader.xpc" \
+            "Versions/B/XPCServices/Installer.xpc" \
+            "Versions/B/Updater.app" \
+            "Versions/B/Autoupdate"; do
+            codesign --force --options runtime --timestamp --sign "$DEVELOPER_ID" "$FW/$c"
+        done
+        codesign --force --options runtime --timestamp --sign "$DEVELOPER_ID" "$FW"
+    fi
+    # Sign the app last (no --deep: the embedded framework is already signed above).
+    codesign --force --options runtime --timestamp \
         --entitlements "$ENTITLEMENTS" --sign "$DEVELOPER_ID" "$APP"
     echo "✓ signed $APP"
 

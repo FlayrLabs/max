@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Sparkle
 
 @main
 struct MaxApp: App {
@@ -61,6 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     private var consentWindow: NSWindow?
     private var statusItem: NSStatusItem!
     private var hotKey: HotKey?
+    private var updaterController: SPUStandardUpdaterController!
 
     private let pillSize = NSSize(width: 640, height: 120)
 
@@ -68,6 +70,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         NSApp.setActivationPolicy(.accessory)
         MaxPaths.ensure()
         SecretStore.migrateLegacyFileIfNeeded() // move any plaintext keys into the Keychain, then delete the file
+
+        // Sparkle auto-updater — starts background update checks (per SUEnableAutomaticChecks in Info.plist)
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
         setupPill()
         setupChat()
@@ -276,11 +281,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         menu.addItem(pauseItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(menuSettings), keyEquivalent: ",")
+        menu.addItem(withTitle: "Check for Updates…", action: #selector(menuCheckForUpdates), keyEquivalent: "")
         menu.addItem(withTitle: "New Conversation", action: #selector(menuClear), keyEquivalent: "")
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit Max", action: #selector(menuQuit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
         statusItem.menu = menu
+    }
+
+    @objc private func menuCheckForUpdates() {
+        updaterController.checkForUpdates(nil)
     }
 
     private var pauseItem: NSMenuItem!
