@@ -42,7 +42,7 @@ struct AnthropicProvider: LLMProvider {
             "max_tokens": 16000,
             "stream": true,
             "system": system,
-            "messages": turns.map(wireMessage),
+            "messages": repairedTurns(turns).map(wireMessage),
         ]
         if !tools.isEmpty {
             body["tools"] = tools.map {
@@ -166,6 +166,55 @@ struct AnthropicProvider: LLMProvider {
             }
         }
         throw ProviderError.malformed("stream ended without message_stop")
+    }
+
+    /// Repairs a turn list so it's always valid for the Messages API, even if a tool call
+    /// was interrupted (Max quit mid-run, or a new message was sent before the tool finished).
+    /// Without this, a dangling `tool_use` with no following `tool_result` makes the API
+    /// reject the whole conversation ("tool_use ids were found without tool_result blocks"),
+    /// wedging the chat permanently.
+    private func repairedTurns(_ turns: [ChatTurn]) -> [ChatTurn] {
+        // Pass 1: ensure every assistant tool_use has a matching user tool_result.
+        var paired: [ChatTurn] = []
+        var i = 0
+        while i < turns.count {
+            let turn = turns[i]
+            paired.append(turn)
+            let toolUseIds = turn.blocks.compactMap { block -> String? in
+                if case .toolUse(let id, _, _) = block { return id }
+                return nil
+            }
+            if !toolUseIds.isEmpty {
+                let next = (i + 1 < turns.count && turns[i + 1].role == .user) ? turns[i + 1] : nil
+                let provided = Set((next?.blocks ?? []).compactMap { block -> String? in
+                    if case .toolResult(let id, _, _, _) = block { return id }
+                    return nil
+                })
+                let synthetic = toolUseIds.filter { !provided.contains($0) }.map { id in
+                    ContentBlock.toolResult(toolUseId: id,
+                                            content: "Tool call was interrupted and produced no result.",
+                                            isError: true, images: [])
+                }
+                if let next = next {
+                    paired.append(ChatTurn(role: .user, blocks: synthetic + next.blocks))
+                    i += 2
+                    continue
+                } else if !synthetic.isEmpty {
+                    paired.append(ChatTurn(role: .user, blocks: synthetic))
+                }
+            }
+            i += 1
+        }
+        // Pass 2: merge consecutive same-role turns (a stray retry can leave two in a row).
+        var merged: [ChatTurn] = []
+        for turn in paired {
+            if let last = merged.last, last.role == turn.role {
+                merged[merged.count - 1] = ChatTurn(role: last.role, blocks: last.blocks + turn.blocks)
+            } else {
+                merged.append(turn)
+            }
+        }
+        return merged
     }
 
     private func wireMessage(_ turn: ChatTurn) -> [String: Any] {
