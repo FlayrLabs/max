@@ -75,3 +75,17 @@ open dist/Max.app
 ## License
 
 MIT — see [LICENSE](LICENSE). © 2026 Flayr Labs LLC.
+
+
+## Privacy & telemetry
+
+**Building Max from source sends no telemetry — none.**
+
+Official release builds (from [trymax.io](https://trymax.io) / GitHub Releases) include
+**opt-out crash reporting** to a self-hosted [GlitchTip](https://glitchtip.com) instance run
+by Flayr Labs. It captures **crash reports only** — no analytics, no personal data, no usage
+tracking, no breadcrumbs. Turn it off any time:
+
+```sh
+defaults write com.flayrlabs.max MaxCrashReportingOptOut -bool YES
+```

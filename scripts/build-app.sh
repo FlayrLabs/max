@@ -26,6 +26,15 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Max"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
+
+# Crash reporting (opt-out) — bake the GlitchTip DSN into the OFFICIAL build's
+# Info.plist only when MAX_SENTRY_DSN is set in the environment. Source builds omit
+# it entirely, so someone cloning + building Max sends no telemetry.
+if [[ -n "${MAX_SENTRY_DSN:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Add :MaxSentryDSN string ${MAX_SENTRY_DSN}" "$APP/Contents/Info.plist" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Set :MaxSentryDSN ${MAX_SENTRY_DSN}" "$APP/Contents/Info.plist"
+    echo "▸ crash reporting enabled (MaxSentryDSN injected)"
+fi
 cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 cp "$ROOT/Resources/DuckGlyph.png" "$APP/Contents/Resources/DuckGlyph.png"
 

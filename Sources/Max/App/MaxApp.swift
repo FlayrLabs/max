@@ -1,10 +1,29 @@
 import SwiftUI
 import AppKit
 import Sparkle
+import Sentry
 
 @main
 struct MaxApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
+    init() {
+        // Crash reporting — OFFICIAL RELEASE BUILDS ONLY. The DSN is injected into
+        // Info.plist by scripts/build-app.sh at release time (from MAX_SENTRY_DSN) and
+        // is ABSENT from source: building Max yourself sends nothing. Crash reports
+        // only — no PII, no breadcrumbs, no analytics. Opt out any time with:
+        //   defaults write com.flayrlabs.max MaxCrashReportingOptOut -bool YES
+        if let dsn = Bundle.main.object(forInfoDictionaryKey: "MaxSentryDSN") as? String,
+           !dsn.isEmpty,
+           !UserDefaults.standard.bool(forKey: "MaxCrashReportingOptOut") {
+            SentrySDK.start { options in
+                options.dsn = dsn
+                options.environment = "production"
+                options.sendDefaultPii = false
+                options.enableAutoBreadcrumbTracking = false
+            }
+        }
+    }
 
     var body: some Scene {
         Settings { EmptyView() }
